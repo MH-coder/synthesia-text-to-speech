@@ -1,0 +1,1 @@
+export const SYNTHESIA_API_URL = 'https://api.synthesia.io/v2/videos'
