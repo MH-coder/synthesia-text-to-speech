@@ -5,6 +5,9 @@ import axios from 'axios'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
 
+// REDUX
+import {useSelector} from 'react-redux'
+
 // OTHERS
 import { SYNTHESIA_API_URL } from '../config'
 
@@ -23,6 +26,10 @@ const features = [
 ]
 
 export default function FeatureSection({setFetch, fetch}) {
+
+  // REDUX
+  const { token, user_email } = useSelector((state) => state.user);
+  console.log(user_email);
 
   return (
     <div className="overflow-hidden bg-slate-200 pt-24 sm:pt-32 pb-10">
@@ -71,7 +78,7 @@ export default function FeatureSection({setFetch, fetch}) {
                 "title": values?.title,
                 "description": values?.description,
                 "visibility": "public",
-                "callbackId": "hassan@contrivers.dev",
+                "callbackId": user_email,
                 "input": [{
                   "scriptText": values?.script,
                   "avatar": "anna_costume1_cameraA",
@@ -158,8 +165,9 @@ export default function FeatureSection({setFetch, fetch}) {
 
                 <div className="">
                   <button
-                    className="mt-4 text-indigo-500 hover:text-indigo-700"
+                    className="mt-4 text-indigo-500 hover:text-indigo-700 disabled:hover:text-gray-500 disabled:text-gray-500"
                     type="submit"
+                    disabled={token==='' ? true : false}
                   >
                     Submit
                   </button>

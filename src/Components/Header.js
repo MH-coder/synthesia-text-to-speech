@@ -1,4 +1,22 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useRef } from 'react'
+
+// FIREBASE
+import { auth, provider } from '../FirebaseConfig'
+import { signInWithPopup } from "firebase/auth";
+
+// REDUX
+import { useDispatch, useSelector } from "react-redux";
+
+// REDUCERS
+import { setName, setToken, setEmail, setSearches } from '../Reducers/UserReducer';
+
+// SEARCH
+import { ReactSearchAutocomplete } from 'react-search-autocomplete'
+
+// ROUTER
+import { useNavigate } from "react-router-dom";
+
+// OTHERS
 import { Dialog, Disclosure, Popover, Transition } from '@headlessui/react'
 import {
   ArrowPathIcon,
@@ -28,7 +46,47 @@ function classNames(...classes) {
 }
 
 export default function Header() {
+
+  // STATES
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [search, setSearch] = useState('');
+
+  // REDUX
+  const dispatch = useDispatch();
+  const { name, token, searches } = useSelector((state) => state.user);
+
+  // ROUTER
+  const navigate = useNavigate();
+
+  // GOOGLE SIGNIN
+  const handleGoogleSignIn = () => {
+    signInWithPopup(auth, provider).then(res => {
+      console.log("USER: ", res?.user);
+      dispatch(setName(res?.user?.displayName))
+      dispatch(setToken(res?.user?.accessToken))
+      dispatch(setEmail(res?.user?.email))
+    }).catch(err => {
+      console.log("Google Signin Error: ", err);
+    })
+  }
+
+  // LOGOUT
+  const handleLogout = () => {
+    dispatch(setName(''))
+    dispatch(setToken(''))
+    dispatch(setEmail(''))
+  }
+
+  // SEARCH METHODS
+  const handleOnSearch = (string, results) => {
+    // onSearch will have as the first callback parameter
+    // the string searched and for the second the results.
+    console.log(string, results)
+  }
+
+  const handleOnSelect = (item) => {
+    navigate(`/courses/${item.name}`);
+  }
 
   return (
     <header className="bg-white">
@@ -39,6 +97,16 @@ export default function Header() {
             <img className="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="" />
           </a>
         </div>
+
+        {/* SEARCH */}
+        <ReactSearchAutocomplete
+            items={searches}
+            onSearch={handleOnSearch}
+            onSelect={handleOnSelect}
+            autoFocus
+            className='w-[450px]'
+          />
+
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -50,11 +118,22 @@ export default function Header() {
           </button>
         </div>
 
-        {/* <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-            Log in <span aria-hidden="true">&rarr;</span>
-          </a>
-        </div> */}
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+          {
+            token !== '' ?
+              <>
+                <span href="#" className="text-sm font-semibold leading-6 text-gray-900" onClick={handleGoogleSignIn}>{name}</span>
+                <span href="#" className="text-sm font-semibold leading-6 text-gray-900 ml-4" onClick={handleLogout}>
+                  Logout <span aria-hidden="true">&rarr;</span>
+                </span>
+              </>
+              :
+              <span href="#" className="text-sm font-semibold leading-6 text-gray-900" onClick={handleGoogleSignIn}>
+                Log in <span aria-hidden="true">&rarr;</span>
+              </span>
+          }
+
+        </div>
       </nav>
       <Dialog as="div" className="lg:hidden" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
         <div className="fixed inset-0 z-10" />
